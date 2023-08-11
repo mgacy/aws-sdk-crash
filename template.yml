@@ -1,0 +1,71 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: AWS SDK crash example.
+
+Parameters:
+  LambdaArchitecture:
+    Type: String
+    Description: The architecture to use for Lambda functions.
+    Default: x86_64
+    AllowedValues:
+      - x86_64
+      - arm64
+
+Globals:
+  Function:
+    Timeout: 60
+    CodeUri: .
+    Handler: swift.bootstrap
+    Runtime: provided.al2
+    MemorySize: 512
+    Architectures:
+      - !Ref LambdaArchitecture
+
+Resources:
+  ExampleTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: 'Test'
+      AttributeDefinitions:
+        - AttributeName: CreatedAt
+          AttributeType: S
+      KeySchema:
+        - AttributeName: CreatedAt
+          KeyType: HASH
+      BillingMode: PROVISIONED
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1
+
+  CrashExample:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: Crash example function.
+      Events:
+        ApiEvent:
+          Type: HttpApi
+          Properties:
+            Path: /test
+            Method: post
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - ses:SendEmail
+              Resource: '*'
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:PutItem
+                - dynamodb:UpdateItem
+                - dynamodb:BatchWriteItem
+              Resource: !GetAtt ExampleTable.Arn
+    Metadata:
+      BuildMethod: makefile
+
+Outputs:
+  ExampleEndpoint:
+    Description: "URL of example handler endpoint."
+    Value: !Sub "https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com/test"

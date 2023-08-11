@@ -1,0 +1,13 @@
+# Swift Package Manager Defaults
+.DS_Store
+/.build
+/Packages
+/*.xcodeproj
+xcuserdata/
+DerivedData/
+.swiftpm/config/registries.json
+.swiftpm/xcode/package.xcworkspace/contents.xcworkspacedata
+.netrc
+.aws-sam/
+.vscode
+deploy.sh
